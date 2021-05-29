@@ -6,7 +6,6 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.util.Log
-import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -15,13 +14,11 @@ import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.*
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_face_detection.*
 import java.io.File
 import java.util.concurrent.ExecutorService
 
-typealias FaceDetectListener = (image: ImageProxy) -> Unit
-
-class MainActivity : AppCompatActivity() {
+class ImageClassificationCameraActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "CameraXBasic"
@@ -36,7 +33,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_face_detection)
         val realTimeOpts = FaceDetectorOptions.Builder()
             .setContourMode(FaceDetectorOptions.CONTOUR_MODE_ALL)
             .build()
