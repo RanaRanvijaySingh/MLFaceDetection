@@ -20,6 +20,6 @@ class HomeActivity : AppCompatActivity() {
     }
 
     fun onClickImageClassificationCamera(view: View) {
-        startActivity(Intent(this, FaceDetectionActivity::class.java))
+        startActivity(Intent(this, ImageClassificationCameraActivity::class.java))
     }
 }

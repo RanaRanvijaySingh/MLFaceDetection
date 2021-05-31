@@ -172,7 +172,7 @@ class FaceDetectionActivity : AppCompatActivity() {
         }*/
     }
 
-    private class LuminosityAnalyzer(val listener: FaceDetectListener) : ImageAnalysis.Analyzer {
+    private class LuminosityAnalyzer(val listener: ImageAnalyzerListener) : ImageAnalysis.Analyzer {
 
         @SuppressLint("UnsafeExperimentalUsageError")
         override fun analyze(imageProxy: ImageProxy) {
