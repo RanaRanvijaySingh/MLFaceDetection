@@ -7,7 +7,6 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.tensorflow.lite.support.image.TensorImage;
 import org.tensorflow.lite.support.label.Category;
@@ -19,7 +18,6 @@ import java.util.List;
 
 public class ImageClassificationStaticActivity extends AppCompatActivity {
 
-    public static final String MODEL_NAME = "model.tflite";
     protected TextView tvMessage;
     private String TAG = ImageClassificationStaticActivity.class.getName();
 

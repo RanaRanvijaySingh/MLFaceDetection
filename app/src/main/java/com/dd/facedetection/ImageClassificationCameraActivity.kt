@@ -13,6 +13,7 @@ import android.media.Image
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.AspectRatio
@@ -45,12 +46,17 @@ class ImageClassificationCameraActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "CameraXBasic"
+        private const val JUMP = "Jump"
+        private const val NO_JUMP = "No Jump"
+        private const val ACCURACY_THRESHOLD = 0.90
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
         private const val RATIO_4_3_VALUE = 4.0 / 3.0
         private const val RATIO_16_9_VALUE = 16.0 / 9.0
     }
 
+    private var isCounting: Boolean = false
+    private var jumpCount: Int = 0
     private var imageCapture: ImageCapture? = null
     private lateinit var cameraExecutor: ExecutorService
     var imageClassifier: ImageClassifier? = null
@@ -180,11 +186,15 @@ class ImageClassificationCameraActivity : AppCompatActivity() {
                 classification.categories?.let { categories ->
                     val score = categories[0].score
                     val label = categories[0].label
-                    if (score >= 0.8) {
+                    if (label.equals(JUMP, true) && score >= ACCURACY_THRESHOLD) {
                         tvMessage.setBackgroundColor(resources.getColor(R.color.green))
-                    } else if (score < 0.8 && score >= 0.5) {
+                        if (isCounting) {
+                            jumpCount++
+                            runOnUiThread(Runnable { tvCount.text = jumpCount.toString() })
+                        }
+                    } /*else if (score < ACCURACY_THRESHOLD && score >= 0.6) {
                         tvMessage.setBackgroundColor(resources.getColor(R.color.yellow))
-                    } else {
+                    } */else {
                         tvMessage.setBackgroundColor(resources.getColor(R.color.red))
                     }
                     tvMessage.text = "${categories[0].label}: ${categories[0].score}"
@@ -245,5 +255,19 @@ class ImageClassificationCameraActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
+    }
+
+    fun onClickReset(view: View) {
+        isCounting = false
+        jumpCount = 0
+        tvCount.text = jumpCount.toString()
+    }
+
+    fun onClickStart(view: View) {
+        isCounting = true
+    }
+
+    fun onClickStop(view: View) {
+        isCounting = false
     }
 }
