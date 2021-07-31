@@ -24,6 +24,7 @@ class FaceDetectionActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "CameraXBasic"
         private const val REQUEST_CODE_PERMISSIONS = 10
+        private const val MIN_FACE_SIZE = 0.0001f
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
     }
 
@@ -36,6 +37,7 @@ class FaceDetectionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_face_detection)
         val realTimeOpts = FaceDetectorOptions.Builder()
+            .setMinFaceSize(MIN_FACE_SIZE)
             .setContourMode(FaceDetectorOptions.CONTOUR_MODE_ALL)
             .build()
         detector = FaceDetection.getClient(realTimeOpts)
@@ -139,10 +141,8 @@ class FaceDetectionActivity : AppCompatActivity() {
     private fun onSuccess(faces: MutableList<Face>) {
         if (faces.size > 0) {
             tvMessage.setBackgroundColor(resources.getColor(R.color.green))
-            tvMessage.text = "Face detected"
         } else {
             tvMessage.setBackgroundColor(resources.getColor(R.color.red))
-            tvMessage.text = "No face detected"
         }
         /*for (face in faces) {
             val bounds = face.boundingBox

@@ -8,7 +8,6 @@ import android.graphics.BitmapFactory
 import android.graphics.ImageFormat
 import android.graphics.Rect
 import android.graphics.YuvImage
-import android.hardware.SensorManager.getOrientation
 import android.media.Image
 import android.os.Bundle
 import android.util.DisplayMetrics
@@ -25,7 +24,11 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import kotlinx.android.synthetic.main.activity_face_detection.*
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.objects.ObjectDetection
+import com.google.mlkit.vision.objects.ObjectDetector
+import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
+import com.google.mlkit.vision.objects.defaults.PredefinedCategory
 import kotlinx.android.synthetic.main.activity_image_classification_camera.*
 import kotlinx.android.synthetic.main.activity_image_classification_camera.tvMessage
 import kotlinx.android.synthetic.main.activity_image_classification_camera.viewFinder
@@ -46,8 +49,9 @@ class ImageClassificationCameraActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "CameraXBasic"
-        private const val JUMP = "Jump"
-        private const val NO_JUMP = "No Jump"
+        private const val JUMP = "jump"
+        private const val PERSON = "person"
+        private const val NO_JUMP = "no Jump"
         private const val ACCURACY_THRESHOLD = 0.90
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
@@ -58,12 +62,20 @@ class ImageClassificationCameraActivity : AppCompatActivity() {
     private var isCounting: Boolean = false
     private var jumpCount: Int = 0
     private var imageCapture: ImageCapture? = null
+    private lateinit var objectDetector: ObjectDetector
     private lateinit var cameraExecutor: ExecutorService
     var imageClassifier: ImageClassifier? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_classification_camera)
+        // Live detection and tracking
+//        val objectDetectorOptions = ObjectDetectorOptions.Builder()
+//            .setDetectorMode(ObjectDetectorOptions.STREAM_MODE)
+//            .enableClassification()  // Optional
+//            .build()
+//        objectDetector = ObjectDetection.getClient(objectDetectorOptions)
+
         // Request camera permissions
         if (allPermissionsGranted()) {
             val options = ImageClassifier.ImageClassifierOptions.builder().setMaxResults(1).build()
@@ -141,7 +153,8 @@ class ImageClassificationCameraActivity : AppCompatActivity() {
             val imageAnalyzer = ImageAnalysis.Builder().build()
             imageAnalyzer.setAnalyzer(cameraExecutor, LuminosityAnalyzer { imageProxy ->
                 onAnalysis(imageProxy)
-                imageProxy.close()
+                //TODO: For custom models
+//                imageProxy.close()
             })
             // Select front camera as a default
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
@@ -166,14 +179,36 @@ class ImageClassificationCameraActivity : AppCompatActivity() {
     private fun onAnalysis(imageProxy: ImageProxy) {
         imageClassifier?.let { imageClassifier ->
             imageProxy.image?.let { image ->
+
+                //TODO: For object detection models
+                // For object detection or in our case person detection
+                /*
+                val inputImage = InputImage.fromMediaImage(image, imageProxy.imageInfo.rotationDegrees)
+                objectDetector.process(inputImage)
+                    .addOnSuccessListener { detectedObjects ->
+                        // Task completed successfully
+                        for (detectedObject in detectedObjects) {
+                            for (label in detectedObject.labels) {
+                                tvObjectDetectResult.text = label.text
+                            }
+                        }
+                        imageProxy.close()
+                    }
+                    .addOnFailureListener { e ->
+                        // Task failed with an exception
+                        tvObjectDetectResult.text = "Object detection failed: Error"
+                        imageProxy.close()
+                    }*/
+                //TODO: For custom models
+                //Custom model analysis ... Begins.
                 toBitmap(image)?.let { bitmap ->
-                    val inputImage: TensorImage = TensorImage.fromBitmap(bitmap)
+                    val tensorImage: TensorImage = TensorImage.fromBitmap(bitmap)
                     val width = bitmap.width
                     val height = bitmap.height
                     val cropSize = min(width, height)
                     val imageOptions: ImageProcessingOptions =
                         getTensorImageOption(width, cropSize, height)
-                    val results: List<Classifications> = imageClassifier.classify(inputImage, imageOptions)
+                    val results: List<Classifications> = imageClassifier.classify(tensorImage, imageOptions)
                     updateUI(results)
                 }
             }
@@ -186,17 +221,22 @@ class ImageClassificationCameraActivity : AppCompatActivity() {
                 classification.categories?.let { categories ->
                     val score = categories[0].score
                     val label = categories[0].label
-                    if (label.equals(JUMP, true) && score >= ACCURACY_THRESHOLD) {
+                    if (label == PERSON && score >= ACCURACY_THRESHOLD){
+                        tvMessage.setBackgroundColor(resources.getColor(R.color.green))
+                    }else {
+                        tvMessage.setBackgroundColor(resources.getColor(R.color.red))
+                    }
+                    /*if (label.equals(JUMP, true) && score >= ACCURACY_THRESHOLD) {
                         tvMessage.setBackgroundColor(resources.getColor(R.color.green))
                         if (isCounting) {
                             jumpCount++
                             runOnUiThread(Runnable { tvCount.text = jumpCount.toString() })
                         }
-                    } /*else if (score < ACCURACY_THRESHOLD && score >= 0.6) {
+                    } *//*else if (score < ACCURACY_THRESHOLD && score >= 0.6) {
                         tvMessage.setBackgroundColor(resources.getColor(R.color.yellow))
-                    } */else {
+                    } *//* else {
                         tvMessage.setBackgroundColor(resources.getColor(R.color.red))
-                    }
+                    }*/
                     tvMessage.text = "${categories[0].label}: ${categories[0].score}"
                 }
             }
